@@ -25,7 +25,13 @@ medved. Zvrhano zibelko sladkih hrušk mi je prinesel za en sam izdrt trn"."""
 # >>> find_words(test_text, 'de')
 # {'izdere', 'debel', 'oddide', 'začudeno'}
 ###############################################################################
-
+import re
+def find_words(besedilo, podniz):
+    mnozica = set()
+    vzorec = r'\b\w*' + podniz + r'\w*\b'
+    for ujemanje in re.finditer(vzorec, besedilo):
+        mnozica.add(ujemanje.group(0))
+    return mnozica
 
 ###############################################################################
 # 2) Sestavite funkcijo [find_prefix], ki vrne množico vseh besed, ki se
@@ -34,8 +40,12 @@ medved. Zvrhano zibelko sladkih hrušk mi je prinesel za en sam izdrt trn"."""
 # >>> find_prefix(test_text, 'zi')
 # {'zibala', 'zibel', 'zibelko'}
 ###############################################################################
-
-
+def find_prefix(besedilo, predpona):
+    mnozica = set()
+    vzorec = r'\b' + predpona + r'\w*\b'
+    for ujemanje in re.finditer(vzorec, besedilo):
+        mnozica.add(ujemanje.group(0))
+    return mnozica
 ###############################################################################
 # 3) Sestavite funkcijo [find_suffix], ki vrne množico vseh besed, ki se
 #    pojavijo v nizu in imajo dano pripono.
@@ -43,7 +53,12 @@ medved. Zvrhano zibelko sladkih hrušk mi je prinesel za en sam izdrt trn"."""
 # >>> find_suffix(test_text, 'la')
 # {'zibala', 'razveselila', 'prestrašila', 'šivala', 'opazila', 'tla'}
 ###############################################################################
-
+def find_sufix(besedilo, pripona):
+    mnozica = set()
+    vzorec = r'\b\w*' + pripona + r'\b'
+    for ujemanje in re.finditer(vzorec, besedilo):
+        mnozica.add(ujemanje.group(0))
+    return mnozica
 
 ###############################################################################
 # 4) Sestavite funkcijo [double_letters], ki sprejme niz in vrne množico vseh
@@ -52,3 +67,9 @@ medved. Zvrhano zibelko sladkih hrušk mi je prinesel za en sam izdrt trn"."""
 # >>> double_letters('A volunteer is worth twenty pressed men.')
 # {'volunteer', 'pressed'}
 ###############################################################################
+def double_letters(niz):
+    mnozica = set()
+    vzorec = r'\b\w*(\w)\1\w*\b'
+    for ujemanje in re.finditer(vzorec, niz):
+        mnozica.add(ujemanje.group(0))
+    return mnozica
