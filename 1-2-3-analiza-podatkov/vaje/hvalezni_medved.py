@@ -32,7 +32,7 @@ def find_words(besedilo, podniz):
     for ujemanje in re.finditer(vzorec, besedilo):
         mnozica.add(ujemanje.group(0))
     return mnozica
-
+  
 ###############################################################################
 # 2) Sestavite funkcijo [find_prefix], ki vrne množico vseh besed, ki se
 #    pojavijo v nizu in imajo dano predpono.
