@@ -12,9 +12,9 @@ cats_frontpage_url = 'http://www.bolha.com/zivali/male-zivali/macke/'
 # mapa, v katero bomo shranili podatke
 cat_directory = 'my_cats'
 # ime datoteke v katero bomo shranili glavno stran
-frontpage_filename = 'cats_fp.html'
+cat_frontpage_filename = 'cat_frontpage.html'
 # ime CSV datoteke v katero bomo shranili podatke
-csv_filename = 'cats.csv'
+cat_csv_filename = 'cat_ads.csv'
 
 
 def download_url_to_string(url):
@@ -23,8 +23,9 @@ def download_url_to_string(url):
     try:
         # del kode, ki morda sproži napako 
         r = requests.get(url)
+        print('download successful')
     except requests.exceptions.ConnectionError:
-        print('stran ne obstaja!')
+       # print('stran ne obstaja!'.format())
         # koda, ki se izvede pri napaki
         # dovolj je če izpišemo opozorilo in prekinemo izvajanje funkcije
         return None
@@ -45,10 +46,19 @@ def save_string_to_file(text, directory, filename):
 # Definirajte funkcijo, ki prenese glavno stran in jo shrani v datoteko.
 
 
-def save_frontpage(TODO):
+def save_frontpage():
     '''Save "cats_frontpage_url" to the file
     "cat_directory"/"frontpage_filename"'''
-    return TODO
+    #download the front page
+    text = download_url_to_string(cats_frontpage_url)
+    #test if download was successful
+    if text is None:
+        print('downloaded cats failed')
+        return
+    #save it to the right file
+    print('downloaded cats, saving')
+    return save_string_to_file(text, cat_directory, cat_frontpage_filename)
+
 
 ###############################################################################
 # Po pridobitvi podatkov jih želimo obdelati.
@@ -57,7 +67,10 @@ def save_frontpage(TODO):
 
 def read_file_to_string(directory, filename):
     '''Return the contents of the file "directory"/"filename" as a string.'''
-    return TODO
+    path = os.path.join(directory, filename)
+    with open(path, 'r', encoding='utf-8') as dat:
+        file_out.write(text)
+    return dat.read()
 
 # Definirajte funkcijo, ki sprejme niz, ki predstavlja vsebino spletne strani,
 # in ga razdeli na dele, kjer vsak del predstavlja en oglas. To storite s
@@ -65,27 +78,41 @@ def read_file_to_string(directory, filename):
 # oglasa. Funkcija naj vrne seznam nizov.
 
 
-def page_to_ads(TODO):
+def page_to_ads(page):
     '''Split "page" to a list of advertisement blocks.'''
-    return TODO
+    rx = re.compile(r'<div class="ad"(.*?)<div class="clear">', re.DOTALL)
+    ads = re.findall(rx, page)
+    return ads
 
 # Definirajte funkcijo, ki sprejme niz, ki predstavlja oglas, in izlušči
 # podatke o imenu, ceni in opisu v oglasu.
 
 
-def get_dict_from_ad_block(TODO):
+def get_dict_from_ad_block(block):
     '''Build a dictionary containing the name, description and price
     of an ad block.'''
-    return TODO
+    rx = re.compile(r'title="(?P<name>.*?)"'
+                    r'.*?</h3>(?P<description>).*?)<div' 
+                    , re.DOTALL)
+    data = re.search(rx, block)
+    ad_dict = data.groupdict()
+    return ad_dict
 
 # Definirajte funkcijo, ki sprejme ime in lokacijo datoteke, ki vsebuje
 # besedilo spletne strani, in vrne seznam slovarjev, ki vsebujejo podatke o
 # vseh oglasih strani.
 
 
-def ads_from_file(TODO):
+def ads_from_file(directory, filename):
     '''Parse the ads in filename/directory into a dictionary list.'''
-    return TODO
+    # prebere datoteko
+    # razbije datoteko na bloke 
+    # iz vsakega bloka dobi slovar
+    # vrne seznam slovarjev
+    page = read_file_to_string(directory, filename)
+    blocks = page_to_ads(page)
+    ads= [get_dict_from_ad_block(block) for block in blocks]
+    return ads
 
 ###############################################################################
 # Obdelane podatke želimo sedaj shraniti.
@@ -98,7 +125,7 @@ def write_csv(fieldnames, rows, directory, filename):
     cell-value.'''
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, filename)
-    with open(path, 'w') as csv_file:
+    with open(path, 'w', encoding = 'utf-8') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in rows:
@@ -110,5 +137,7 @@ def write_csv(fieldnames, rows, directory, filename):
 # stolpce [fieldnames] pridobite iz slovarjev.
 
 
-def write_cat_ads_to_csv(TODO):
-    return TODO
+def write_cat_ads_to_csv(ads):
+    fieldnames = ads[0].keys()
+    write_csv(fieldnames, ads, cat_directory, cat_csv_filename)
+    return None
