@@ -20,7 +20,15 @@
  # dollar_to_euro (Dollar 0.5);;
  - : euro = Euro 0.4305
 [*----------------------------------------------------------------------------*)
+type euro = 
+  | Euro of float
+type dollar =
+  | Dollar of float
 
+let dollar_to_euro x = match x with
+ | Dollar y -> Euro (y *. 0.875)
+
+let euro_to_dollar (Euro x) = Dollar (x *. 1.142)
 
 
 (*----------------------------------------------------------------------------*]
@@ -35,7 +43,17 @@
  - : currency = Pound 0.007
 [*----------------------------------------------------------------------------*)
 
+type currency =
+  |Yen of float
+  |Pound of float
+  |Krona of float
 
+let to_pound y = function
+ |Yen y -> Pound (7000 *. y)
+ |Pound y -> Pound y
+ |Krona y -> Pound (y *. 0.0864236596)
+
+ (*To zgoraj še ne dela prav*)
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Želimo uporabljati sezname, ki hranijo tako cela števila kot tudi logične
@@ -47,7 +65,7 @@
  [Nil] (oz. [] v Ocamlu) in pa konstruktorjem za člen [Cons(x, xs)] (oz.
  x :: xs v Ocamlu).
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
-
+type 'a list = Nil | Cons of 'a * 'a list
 (*----------------------------------------------------------------------------*]
  Definirajte tip [intbool_list] z konstruktorji za:
   1.) prazen seznam,
@@ -56,8 +74,12 @@
 
  Nato napišite testni primer, ki bi predstavljal "[5; true; false; 7]".
 [*----------------------------------------------------------------------------*)
+type intbool_list =
+  |Empty
+  |IntCons of int * intbool_list
+  |BoolCons of bool * intbool_list
 
-
+let example_list = IntCons (5, BoolCons (true, BoolCons (false, IntCons (7, Empty))))
 
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_map f_int f_bool ib_list] preslika vrednosti [ib_list] v nov
@@ -65,14 +87,25 @@
  oz. [f_bool].
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_map = ()
+let rec intbool_map f_int f_bool = function
+  |Empty -> Empty
+  |IntCons (n, tail) -> let tail = intbool_map f_int f_bool tail in 
+                        IntCons(f_int n, tail)
+  |BoolCons (b, tail) -> let tail = intbool_map f_int f_bool tail in
+                        BoolCons(f_bool b, tail)
+
+
 
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_reverse] obrne vrstni red elementov [intbool_list] seznama.
  Funkcija je repno rekurzivna.
 [*----------------------------------------------------------------------------*)
 
-let rec intbool_reverse = ()
+let rec intbool_reverse list = 
+  let rec intbool_rev_aux = function 
+   |Empty -> acc
+   |IntCons (n, tail) -> intbool_rev_aux(IntCons(n, acc)) tail
+   |BoolCons (b, tail) -> intbool_rev_aux(BoolCons(b, acc)) tail
 
 (*----------------------------------------------------------------------------*]
  Funkcija [intbool_separate ib_list] loči vrednosti [ib_list] v par [list]
@@ -97,8 +130,15 @@ let rec intbool_separate = ()
  raziskovanje oz. historian, teacher in researcher. Definirajte tip
  [specialisation], ki loči med temi zaposlitvami.
 [*----------------------------------------------------------------------------*)
+type magic = 
+  | Fire
+  | Frost
+  | Arcane
 
-
+type spacialisation = 
+  | Historian
+  | Teacher
+  | Researcher
 
 (*----------------------------------------------------------------------------*]
  Vsak od čarodejev začne kot začetnik, nato na neki točki postane študent,
@@ -115,6 +155,12 @@ let rec intbool_separate = ()
  - : wizard = {name = "Matija"; status = Employed (Fire, Teacher)}
 [*----------------------------------------------------------------------------*)
 
+type status =
+  | Newbie
+  | Student of magic * int 
+  | Employd of magic * specialisation
+
+type wizard = {name : string; status : status}
 
 
 (*----------------------------------------------------------------------------*]
@@ -127,6 +173,12 @@ let rec intbool_separate = ()
  # update {fire = 1; frost = 1; arcane = 1} Arcane;;
  - : magic_counter = {fire = 1; frost = 1; arcane = 2}
 [*----------------------------------------------------------------------------*)
+ type magic_counter = {fire : int; frost : int; arcane : int}
+
+ let update counter magic = match magic with
+ | Arcane -> {counter with arcane = magic.arcane + 1}
+ | Fire -> {counter with fire = magic.fire + 1}
+ | Frost -> {counter with frost = magic.frost + 1}
 
 
 
