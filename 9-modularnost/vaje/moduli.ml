@@ -53,9 +53,18 @@ module type NAT = sig
 
   val eq   : t -> t -> bool
   val zero : t
-  (* Dodajte manjkajoče! *)
-  (* val to_int : t -> int *)
-  (* val of_int : int -> t *)
+  val one : t
+  val add : t -> t -> t
+  val sub : t -> t -> t
+  val mult : t -> t -> t 
+  val to_int : t -> int 
+  (* [of_int k] če je k negativen:
+  - se sesuje
+  - uporabi 0
+  - uporabi absolutno vrednost
+  Vsak se sam odloči, asistent je vzel drugo možnost*)
+  val of_int : int -> t
+
 end
 
 (*----------------------------------------------------------------------------*]
@@ -70,9 +79,15 @@ end
 module Nat_int : NAT = struct
 
   type t = int
-  let eq x y = failwith "later"
+  let eq x y = 
+    x = y
   let zero = 0
-  (* Dodajte manjkajoče! *)
+  let one = 1
+  let add = ( + )
+  let sub x y = x - y
+  let mult x y = ( * ) x y
+  let to_int n = 
+    let of_int k = max 0 k
 
 end
 
@@ -90,10 +105,26 @@ end
 
 module Nat_peano : NAT = struct
 
-  type t = unit (* To morate spremeniti! *)
-  let eq x y = failwith "later"
-  let zero = () (* To morate spremeniti! *)
-  (* Dodajte manjkajoče! *)
+  type t = Zero | S of t 
+  let rec eq x y = 
+    match (x, y) with 
+    | Zero, Zero -> true
+    | Zero, S _ -> false
+    | S _, Zero -> false
+    | S x', S y' -> eq x' y'
+  let zero = Zero
+  let one = S Zero
+  let rec add x = function
+   | Zero -> x
+   | S y -> add (S x) y
+  let rec sub x y =
+    match(x, y) with 
+    | (_, Zero) -> x
+    | (Zero, _) -> y
+    | S x, S y -> sub x y
+  let rec of_int i =
+    if i <= 0 then Zero else S (of_int (i - 1))
+  (* Dodajte manjkajoče! Jaz: Jih je še nekaj ......!!!!!*)
 
 end
 

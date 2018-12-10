@@ -6,6 +6,9 @@
  poddrevesi. Na tej točki ne predpostavljamo ničesar drugega o obliki dreves.
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
 
+type 'a tree =
+    | Empty
+    | Node of 'a tree * 'a * 'a tree
 
 (*----------------------------------------------------------------------------*]
  Definirajmo si testni primer za preizkušanje funkcij v nadaljevanju. Testni
@@ -18,7 +21,10 @@
       0   6   11
 [*----------------------------------------------------------------------------*)
 
+let leaf x = Node(Empty, x, Empty) 
 
+let test_tree = 
+    Node(Node(leaf 0, 2, Empty), 5, Node(leaf 6, 7, leaf 11) 
 (*----------------------------------------------------------------------------*]
  Funkcija [mirror] vrne prezrcaljeno drevo. Na primeru [test_tree] torej vrne
           5
@@ -33,6 +39,9 @@
  Node (Empty, 2, Node (Empty, 0, Empty)))
 [*----------------------------------------------------------------------------*)
 
+let rec mirror = function
+    | Empty -> Empty
+    | Node (l, a, r) -> Node (mirror r, a, mirror l) 
 
 (*----------------------------------------------------------------------------*]
  Funkcija [height] vrne višino oz. globino drevesa, funkcija [size] pa število
@@ -44,6 +53,13 @@
  - : int = 6
 [*----------------------------------------------------------------------------*)
 
+let rec height = function
+ | Empty -> 0
+ | Node (l, a, r) -> 1 + max (height l) (height r)
+
+let rec size = function
+ | Empty -> 0
+ | Node (l, a, r) -> 1 + (size l) + (size r)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [map_tree f tree] preslika drevo v novo drevo, ki vsebuje podatke
@@ -55,6 +71,9 @@
  Node (Node (Empty, true, Empty), true, Node (Empty, true, Empty)))
 [*----------------------------------------------------------------------------*)
 
+let map_tree f = function
+ | Empty -> Empty
+ | Node (l, a, r) -> Node(map_tree f l, f a, map_tree f r)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [list_of_tree] pretvori drevo v seznam. Vrstni red podatkov v seznamu
@@ -64,6 +83,9 @@
  - : int list = [0; 2; 5; 6; 7; 11]
 [*----------------------------------------------------------------------------*)
 
+let rec list_of_tree = function
+ | Empty -> []
+ | Node (l, a, r) -> (list_of_tree l) @ (a :: list_of_tree r)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [is_bst] preveri ali je drevo binarno iskalno drevo (Binary Search 
@@ -76,6 +98,12 @@
  - : bool = false
 [*----------------------------------------------------------------------------*)
 
+let rec narascajoc xs = match xs with
+ | [] -> true
+ | x :: [] -> true
+ | x :: y :: xs -> x <= y && narascajoc xs
+
+ let rec is_bst = function
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  V nadaljevanju predpostavljamo, da imajo dvojiška drevesa strukturo BST.
@@ -113,6 +141,18 @@
  - : int option = None
 [*----------------------------------------------------------------------------*)
 
+let succ bst =
+    rec succ = 
+     let rec min = function
+     |Empty -> None
+     |Node (x, Empty, _) -> Some x
+     |Node(_, l, _) -> min l
+    in 
+   match bst with
+   | Empty -> None
+   | Node (_, _, r) -> min r
+   
+   let rec pred = ()
 
 (*----------------------------------------------------------------------------*]
  Na predavanjih ste omenili dva načina brisanja elementov iz drevesa. Prvi 
@@ -127,6 +167,9 @@
  Node (Node (Empty, 6, Empty), 11, Empty))
 [*----------------------------------------------------------------------------*)
 
+let rec delete x = function 
+ | Empty -> Empty
+ | (Node (y, l, r) as t) ->
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  SLOVARJI
@@ -138,6 +181,7 @@
  strukturo glede na ključe. Ker slovar potrebuje parameter za tip ključa in tip
  vrednosti, ga parametriziramo kot [('key, 'value) dict].
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
+
 
 
 (*----------------------------------------------------------------------------*]
@@ -160,7 +204,12 @@
  - : int option = Some (-2)
 [*----------------------------------------------------------------------------*)
 
-      
+let rec get_dict k = function
+ | Empty -> None
+ | Node (l, ('k, v), r) -> if k = 'k then Some v
+   else if k < 'k then 
+        get_dict k l
+   else get_dict k r 
 (*----------------------------------------------------------------------------*]
  Funkcija [print_dict] sprejme slovar s ključi tipa [string] in vrednostmi tipa
  [int] in v pravilnem vrstnem redu izpiše vrstice "ključ : vrednost" za vsa
@@ -177,7 +226,15 @@
  - : unit = ()
 [*----------------------------------------------------------------------------*)
 
-
+(*
+TA KOMENTAR SEM SAMA NAPISALA: poigraj se s funkcijami 
+print_newline: unit -> unit
+print_string: string -> unit
+print_endline: string -> unit
+print_int: int -> unit
+string_of_int: int -> string
+*)
+ 
 (*----------------------------------------------------------------------------*]
  Funkcija [dict_insert key value dict] v slovar [dict] pod ključ [key] vstavi
  vrednost [value]. Če za nek ključ vrednost že obstaja, jo zamenja.
