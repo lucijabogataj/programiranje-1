@@ -6,21 +6,18 @@
  was peculiar was the definition of moral turpitude: making a false statement
  in class. Needless to say, the university did not teach computer science.
  However, it had a renowned department of mathematics.
-
  One Semester, there was such a large enrollment in complex variables that two
  sections were scheduled. In one section, Professor Descartes announced that a
  complex number was an ordered pair of reals, and that two complex numbers were
  equal when their corresponding components were equal. He went on to explain
  how to convert reals into complex numbers, what "i" was, how to add, multiply,
  and conjugate complex numbers, and how to find their magnitude.
-
  In the other section, Professor Bessel announced that a complex number was an
  ordered pair of reals the first of which was nonnegative, and that two complex
  numbers were equal if their first components were equal and either the first
  components were zero or the second components differed by a multiple of 2π. He
  then told an entirely different story about converting reals, "i", addition,
  multiplication, conjugation, and magnitude.
-
  Then, after their first classes, an unfortunate mistake in the registrar's
  office caused the two sections to be interchanged. Despite this, neither
  Descartes nor Bessel ever committed moral turpitude, even though each was
@@ -28,11 +25,9 @@
  intuitive understanding of type. Having defined complex numbers and the
  primitive operations upon them, thereafter they spoke at a level of
  abstraction that encompassed both of their definitions.
-
  The moral of this fable is that:
    Type structure is a syntactic discipline for enforcing levels of
    abstraction."
-
  from:
  John C. Reynolds, "Types, Abstraction, and Parametric Polymorphism", IFIP83
 [*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*)
@@ -42,16 +37,15 @@
  Definirajte signaturo [NAT], ki določa strukturo naravnih števil. Ima osnovni 
  tip, funkcijo enakosti, ničlo in enko, seštevanje, odštevanje in množenje.
  Hkrati naj vsebuje pretvorbe iz in v OCamlov [int] tip.
-
  Opomba: Funkcije za pretvarjanje ponavadi poimenujemo [to_int] and [of_int],
  tako da skupaj z imenom modula dobimo ime [NAT.of_int], ki nam pove, da 
  pridobivamo naravno število iz celega števila.
 [*----------------------------------------------------------------------------*)
 
 module type NAT = sig
-  type t
+  type t 
 
-  val eq   : t -> t -> bool
+  val eq : t -> t -> bool
   val zero : t
   val one : t
   val add : t -> t -> t
@@ -70,24 +64,24 @@ end
 (*----------------------------------------------------------------------------*]
  Napišite implementacijo modula [Nat_int], ki zgradi modul s signaturo [NAT],
  kjer kot osnovni tip uporablja OCamlov tip [int].
-
  Namig: Dokler ne implementirate vse funkcij v [Nat_int] se bo OCaml pritoževal.
  Temu se lahko izognete tako, da funkcije, ki še niso napisane nadomestite z 
  [failwith "later"], vendar to ne deluje za konstante.
 [*----------------------------------------------------------------------------*)
 
-module Nat_int : NAT = struct
+module Nat_int : NAT  = struct
 
-  type t = int
-  let eq x y = 
+  type t = int 
+
+  let eq x y =
     x = y
   let zero = 0
   let one = 1
   let add = ( + )
-  let sub x y = x - y
+  let sub x y = max 0 (x - y)
   let mult x y = ( * ) x y
-  let to_int n = 
-    let of_int k = max 0 k
+  let to_int x = x
+  let of_int x = max x 0
 
 end
 
@@ -100,7 +94,6 @@ end
  Večino funkcij lahko implementirate s pomočjo rekurzije. Naprimer, enakost
  števil [k] in [l] določimo s hkratno rekurzijo na [k] in [l], kjer je osnoven
  primer [Zero = Zero].
-
 [*----------------------------------------------------------------------------*)
 
 module Nat_peano : NAT = struct
@@ -115,29 +108,30 @@ module Nat_peano : NAT = struct
   let zero = Zero
   let one = S Zero
   let rec add x = function
-   | Zero -> x
-   | S y -> add (S x) y
+    | Zero -> x
+    | S y -> add (S x) y
   let rec sub x y =
     match(x, y) with 
     | (_, Zero) -> x
-    | (Zero, _) -> y
-    | S x, S y -> sub x y
+    | (Zero, _) -> Zero
+    | (S x, S y) -> sub x y
+  let rec mult x = function
+    | Zero -> Zero
+    | S y -> add x (mult x y)
   let rec of_int i =
     if i <= 0 then Zero else S (of_int (i - 1))
-  (* Dodajte manjkajoče! Jaz: Jih je še nekaj ......!!!!!*)
+  let rec to_int = function
+    | Zero -> 0
+    | S x -> 1 + (to_int x)
 
 end
 
 (*----------------------------------------------------------------------------*]
  V OCamlu lahko module podajamo kot argumente funkcij, z uporabo besede
  [module]. Funkcijo, ki sprejme modul torej definiramo kot
-
  # let f (module M : M_sig) = ...
-
  in ji podajamo argumente kot 
-
  # f (module M_implementation);;
-
  Funkcija [sum_nat_100] sprejme modul tipa [NAT] in z uporabo modula sešteje
  prvih 100 naravnih števil. Ker funkcija ne more vrniti rezultata tipa [NAT.t]
  (saj ne vemo, kateremu od modulov bo pripadal, torej je lahko [int] ali pa
@@ -149,7 +143,14 @@ end
  - : int = 4950
 [*----------------------------------------------------------------------------*)
 
-let sum_nat_100 (module Nat : NAT) = ()
+let sum_nat_100 (module Nat : NAT) = 
+  let hundred = Nat.of_int 100 in
+  let rec pristej i acc = 
+    if Nat.eq i hundred 
+      then acc 
+    else 
+      pristej (Nat.add Nat.one i) (Nat.add i acc)
+  in Nat.to_int (pristej Nat.one Nat.zero)
 
 (*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*]
  Now we follow the fable told by John Reynolds in the introduction.
@@ -164,7 +165,13 @@ let sum_nat_100 (module Nat : NAT) = ()
 module type COMPLEX = sig
   type t
   val eq : t -> t -> bool
-  (* Dodajte manjkajoče! *)
+  val zero : t 
+  val one : t 
+  val i : t
+  val neg : t -> t 
+  val kon : t -> t 
+  val add : t -> t -> t
+  val mult : t -> t -> t
 end
 
 (*----------------------------------------------------------------------------*]
@@ -176,8 +183,15 @@ module Cartesian : COMPLEX = struct
 
   type t = {re : float; im : float}
 
-  let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
+  let eq x y = (x.re = y.re) && (x.im = y.im)
+  let zero = {re = 0.; im = 0.}
+  let one = {re = 1.; im = 0.}
+  let i = {re = 0.; im = 1.}
+  let neg {re; im} = {re = -. re; im = -. im}
+  let kon {re; im} = {re; im = -. im}
+  let add x y = {re = x.re +. y.re; im = x.im +. y.im}
+  let mult x y = {re = x.re *. y.re +. x.im *. y.im;
+                  im = x.im *. y.re +. y.im *. x.re}
 
 end
 
@@ -198,8 +212,17 @@ module Polar : COMPLEX = struct
   let rad_of_deg deg = (deg /. 180.) *. pi
   let deg_of_rad rad = (rad /. pi) *. 180.
 
-  let eq x y = failwith "later"
-  (* Dodajte manjkajoče! *)
+  let eq x y = 
+    (x.magn = 0. && y.magn = 0.) || 
+    (x.magn = y.magn && mod_float x.arg 360. = mod_float y.arg 360.)
+  let zero = {magn = 0.; arg = 0.}
+  let one = {magn = 1.; arg = 0.}
+  let i = {magn = 0.; arg = 90.}
+  let neg {magn; arg} = {magn; arg = 180. +. arg}
+  let kon {magn; arg} = {magn; arg = 360. -. 2. *. arg}
+  let mult x y = {magn = x.magn *. y.magn ; arg = x.arg +. y.arg}
+
+  let add x y = failwith "Ni še konec stoletja! :) "
 
 end
 
